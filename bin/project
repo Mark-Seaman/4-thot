@@ -28,7 +28,7 @@ $pt:\
 
 # Show the banner
 reset
-figlet '4-thot'
+figlet '4 - thot'
 
 # Directory
 cd $p

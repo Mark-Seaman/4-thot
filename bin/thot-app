@@ -1,6 +1,0 @@
-#!/bin/bash
-# Show the pipe scan home page
-echo 'Show the 4-thot app in a browser'
-
-~/Projects/4-thot/app/run
-

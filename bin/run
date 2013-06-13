@@ -12,5 +12,5 @@ rbg node app.js
 sleep 1
 
 # Show the web page
-w localhost:8084/
+rbg firefox localhost:8084/
 

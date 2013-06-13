@@ -1,0 +1,33 @@
+* 4-Thot - To Do  *                 -*-muse-*-
+_____________________________________________________________________________
+
+**Communicate** - share
+
+
+**Learn** - problem
+
+    data: title, links, created, modified
+    actions: show, find, add, edit, delete
+    tools: Yeoman, Karma, Jenkins, PyJade, Textile, Markdown
+
+
+**Plan** - solution
+
+
+**Test** - verify
+
+    pass all tests
+
+
+**Fix** - defects
+
+
+**Extend** - features 
+
+    single read of all docs
+    save button to write file
+
+**Improve** - structure
+
+    develop project management scripts
+

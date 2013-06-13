@@ -12,7 +12,6 @@ app.js
 files.js
 node_modules
 README.md
-run
 test-app.js
 thot.js
 views
@@ -37,7 +36,6 @@ show
 tdiff
 te
 tfail
-thot-app
 thot-commit
 thot-docs
 thot-exe
@@ -86,6 +84,7 @@ Teach
 thot login and security
 Time tracking
 Today
+ToDo
 Work
 
 /home/seaman/Projects/4-thot/test:

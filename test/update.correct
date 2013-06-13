@@ -24,10 +24,30 @@ ____________________
 mkexe
 ____________________
 project
+5c5
+< export p=~/Projects/4-thot
+---
+> export p=~/Projects/jack-hammer
+31c31
+< figlet '4 - thot'
+---
+> figlet 'Jack Hammer'
 ____________________
 rbg
 ____________________
 run
+3c3
+< echo 'Show the 4-thot app in a browser'
+---
+> echo 'Show the Jack Hammer app in a browser'
+5c5
+< cd ~/Projects/4-thot/app
+---
+> cd $p/app
+15c15
+< rbg firefox localhost:8084/
+---
+> rbg firefox localhost:8081
 ____________________
 show
 ____________________
@@ -56,8 +76,6 @@ ____________________
 tst
 ____________________
 w
-____________________
-wiki-html-content
 ____________________
 docs.tst
 ____________________

@@ -27,7 +27,7 @@ $pt:\
 .
 
 # Show the banner
-reset
+#reset
 figlet '4 - thot'
 
 # Directory

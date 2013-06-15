@@ -132,6 +132,10 @@ show.correct
 show.diff
 show.out
 show.tst
+update-app.correct
+update-app.diff
+update-app.out
+update-app.tst
 update.correct
 update.diff
 update.out

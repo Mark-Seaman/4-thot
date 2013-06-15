@@ -1,0 +1,345 @@
+____________________
+app.js
+1,4c1,6
+< var express = require('express');
+< var http    = require('http');
+< var app     = express();
+< var server  = http.createServer(app);
+---
+> // System requirements
+> var express    = require('express');
+> var app        = express();
+> var http       = require('http');
+> var server     = http.createServer(app);
+> var files      = require('./files');
+6d7
+< var files   = require('./files');
+7a9
+> // Setup environment
+9,10c11,12
+< app.set('view options', { layout: false });
+< app.set('views', __dirname+'/views');
+---
+> app.set('view options', { layout: true });
+> app.set('views',        __dirname+'/views');
+14d15
+< 
+25,29d25
+< //-----------------------------------------------------------------------------
+< // Find view
+< app.get('/find', function(req, res) {
+<     res.render ('find', { text:[ 'thing 1', 'thing 2'] })
+< });
+31,35d26
+< app.post('/find', function(req, res){
+<     path = req.body.id;
+<     if (req.param('cancel')) return res.redirect ('/'); 
+<     files.find (path, function (data) { res.render('find', data) })
+< });
+37,38d27
+< 
+< //-----------------------------------------------------------------------------
+40,59c29,41
+< app.get('/:id/edit', function(req, res) {
+<     files.get(req.params.id, function (data) { res.render ('edit', data) })
+< });
+< 
+< 
+< // New view
+< app.get('/new', function(req, res) {
+<     res.render ('edit', files.new()); 
+< });
+< 
+< // Save view
+< app.post('/save', function(req, res){
+<     path = req.body.id;
+<     if (req.param('cancel')) return res.redirect ('/'+path); 
+<     c1   = req.body.child1;
+<     c2   = req.body.child2;
+<     c3   = req.body.child3;
+<     c4   = req.body.child4;
+<     text = path+'\n'+ c1+'\n'+c2+'\n'+c3+'\n'+c4+'\n';
+<     files.put (path, text, function () { res.redirect ('/'+path) })
+---
+> app.get('/*:doc?/edit', function(req, res) {
+>     doc = req.params.doc;
+>     files.read (doc, function (text) { 
+>         res.render ('edit', {doc:doc, text:text} ); 
+>     });
+> });
+> app.post('/*:doc?/edit', function(req, res){
+>     doc = req.body.doc;
+>     text = req.body.text.replace(/\r/gm,'');
+>     if (req.param('cancel')) return res.redirect ('/'+doc); 
+>     files.write (doc, text, function () {
+>         res.redirect ('/'+doc); 
+>     });
+62d43
+< //-----------------------------------------------------------------------------
+64c45
+< // List view
+---
+> // Format a document
+66c47
+<     files.list ('.', function (data) { res.render ('list', data) })
+---
+>     res.redirect('/Index');
+68,71c49,50
+< 
+< // Detail view
+< app.get('/:id', function(req, res) {
+<     files.get (req.params.id, function (data) { res.render ('detail',  data) })
+---
+> app.get('/:doc?/', function(req, res){
+>     res.redirect(req.params.doc+'/Index');
+72a52,59
+> app.get('/*:doc?', function(req, res){
+>     doc = req.params.doc;
+>     files.format(doc, 
+>                  function(text) { res.render('show',{doc:doc, text:text}) },   
+>                  function()     { res.send ('Doc Error')}
+>                 )
+> });
+> 
+73a61,65
+> // Missing page
+> app.get('*', function(req, res){
+>     console.log("Page:"+req.url)
+>     res.redirect ('/Home')
+> });
+75c67,68
+< var port = 8084;
+---
+> // Listen on 8081
+> var port = 8081;
+____________________
+files.js
+6,10c6,9
+< var list_files = function (path, action) {
+<     fs.readdir('../doc/'+path, function(err, files) {
+<         if (err) files = ['No directory'];
+<         action({ files:files });
+<     });
+---
+> var list_files = function (action) {
+>     exec('hammer-list .', function(error,stdout) {
+>         action({files:stdout.split('\n').slice(0,-1) });
+>     });   
+14,24c13,16
+< var read_file = function (path, action) {
+<     fs.readFile('../doc/'+path, 'utf8', function(err, data) {
+<         if (err) {
+<             data = { id: path, child1:'a', child2:'b', child3:'c', child4:'d'};
+<         }
+<         else {
+<             a = data.split('\n');
+<             data = { id: a[0], child1:a[1], child2:a[2], child3:a[3], child4:a[4]}
+<         }
+<         action(data);
+<     });
+---
+> var read_file = function (doc, action) {
+>     exec('hammer-read ../doc/'+doc, function(error,stdout) {
+>         action(stdout);
+>     });   
+28,54c20,25
+< var write_file = function (path, text, action) {
+<     var stream = fs.createWriteStream('../doc/'+path);
+<     stream.once('open', function(fd) {
+<         stream.write(text+"\n");
+<         stream.end();
+<         action();
+<     });
+< }
+< 
+< // Create a new topic
+< var new_topic = function(title, action) {
+<      return {id:title,  child1:'Child 1', child2:'Child 2', child3:'Child 3', child4:'Child 4'}
+< }
+< 
+< // Save the topic
+< var save_topic = function(path, text, action) {
+<     write_file (path, text, function () {
+<         action();
+<     });
+< }
+< 
+< // Execute a command and act on the output
+< var execute_file = function(command, action) {
+<     exec(command, function(error,stdout) {
+<         if (error) return action({ text: [ 'Error executing command'] });
+<         action({ text: stdout.split('\n') });    
+<     });
+---
+> var write_file = function (doc, text, action) {
+>     p = exec('hammer-edit ../doc/'+doc, function(error,stdout) {
+>         action(stdout);
+>     })
+>     p.stdin.write(text);
+>     p.stdin.end();
+58,70c29,50
+< var find_text = function(doc, action) {
+<     console.log('thot-find "%s"', doc)
+<     execute_file('thot-find "'+doc+'"', function(text) {
+<         action(text);
+<     });
+< }
+< 
+< // Lookup a topic
+< var get_topic = function(doc, action) {
+<     console.log('thot-read "%s"', doc)
+<     execute_file('thot-read "'+doc+'"',  function(text) {
+<         action(text);
+<     });
+---
+> var format_file = function(doc, show, create) {
+>     exec('hammer-show '+doc, function(error,stdout) { 
+>         if (error) 
+>             show ("hammer-show error:"+doc+','+error)
+>         else
+>             show(stdout) 
+>     })
+> }
+> 
+> // Execute a script and return the result
+> var execute_file = function(doc, show, create) {
+>     path = '../doc/'+doc
+>     fs.exists(path, function(exists) {
+>         if (exists) { 
+>             exec(path, function(error,stdout) { 
+>                 show(stdout) 
+>             })
+>         }
+>         else {
+>             show("PATH:"+path+'   Text:xxError')
+>         }
+>     })
+73d52
+< // Exports
+77,79d55
+< exports.new     = new_topic;
+< exports.get     = get_topic;
+< exports.put     = save_topic;
+81c57
+< exports.find    = find_text;
+---
+> exports.format  = format_file;
+____________________
+node_modules
+Common subdirectories: /home/seaman/Projects/4-thot/app/node_modules/.bin and /home/seaman/Projects/jack-hammer/app/node_modules/.bin
+Common subdirectories: /home/seaman/Projects/4-thot/app/node_modules/express and /home/seaman/Projects/jack-hammer/app/node_modules/express
+Common subdirectories: /home/seaman/Projects/4-thot/app/node_modules/jade and /home/seaman/Projects/jack-hammer/app/node_modules/jade
+Common subdirectories: /home/seaman/Projects/4-thot/app/node_modules/mongoose and /home/seaman/Projects/jack-hammer/app/node_modules/mongoose
+Common subdirectories: /home/seaman/Projects/4-thot/app/node_modules/websocket-server and /home/seaman/Projects/jack-hammer/app/node_modules/websocket-server
+____________________
+test-app.js
+____________________
+thot.js
+____________________
+views
+Only in /home/seaman/Projects/jack-hammer/app/views: cmd.jade
+diff /home/seaman/Projects/4-thot/app/views/detail.jade /home/seaman/Projects/jack-hammer/app/views/detail.jade
+4c4
+<   title Detail - #{text[0]}
+---
+>   title Detail - #{id}
+7,9c7,10
+< 
+<   h1 
+<     a(style='color:#222',href='/#{text[0]}/edit') #{text[0]}
+---
+>   p 
+>     a(href='/') List 
+>     t= ' * '
+>     a(href='/#{id}/edit') Edit
+11,24c12,13
+<   -var box = "float:right; background-color:#ffe;border:solid 1px gray;  height:200px;width:40%;  margin:1em; padding:1em"
+<   div(style='#{box}')
+<     h2
+<       a(style='color:blue', href='#{text[1]}') #{text[1]}
+<   div(style='#{box}')
+<     h2
+<       a(style='color:purple', href='#{text[2]}') #{text[2]}
+<   div(style='#{box}')
+<     h2
+<       a(style='color:green',href='#{text[3]}') #{text[3]}
+<   div(style='#{box}')
+<     h2
+<       a(style='color:red',href='#{text[4]}') #{text[4]}
+< 
+---
+>   h1 Detail: #{id}
+>   pre #{data}
+diff /home/seaman/Projects/4-thot/app/views/edit.jade /home/seaman/Projects/jack-hammer/app/views/edit.jade
+4c4
+<   title Edit #{text[0]}
+---
+>   title Edit #{doc}
+6a7
+>   h1 Edit: #{doc}
+8,21c9,11
+<   form(method="post", action="/save")
+<     style input{width:90%}
+<     h1 Topic
+<     input(name='id',   type='text', value='#{text[0]}') 
+<     h2 Subtopics
+<     ul 
+<       li 
+<         input(name='child1', type='text', value='#{text[1]}') 
+<       li
+<         input(name='child2', type='text', value='#{text[2]}') 
+<       li
+<         input(name='child3', type='text', value='#{text[3]}') 
+<       li
+<         input(name='child4', type='text', value='#{text[4]}') 
+---
+>   form(method="post", action="/#{doc}/edit")
+>     p Doc:
+>       input(name='doc', type='text', value='#{doc}') 
+23,27c13,17
+<       center
+<         button(class="btn btn-large btn-primary", type="submit", value="Save") Save 
+<         x= '&nbsp; &nbsp; &nbsp;'
+<         button(class="btn btn-large", type="cancel", value="Cancel",  name="cancel") Cancel
+< 
+---
+>       style textarea{height:400px; width:90%}
+>       textarea(name='text',type='text',rows="4",cols="50") #{text}
+>     p
+>       button(type="submit", value="Save") Save
+>       button(type="cancel", value="Cancel",  name="cancel") Cancel
+diff /home/seaman/Projects/4-thot/app/views/layout.jade /home/seaman/Projects/jack-hammer/app/views/layout.jade
+6c6
+<       title 4 thot
+---
+>       title Jack Hammer Project Notes
+18,32c18
+< 
+<     center 
+<       h1
+<         span(style='color:green') 4
+<         span(style='color:red') -
+<         span(style='color:blue') thot
+<       p
+<         a(href='/') All thots
+<         x!=  '&nbsp; &nbsp; &nbsp; &nbsp;'
+<         a(href='/new') Add
+<         x!=  '&nbsp; &nbsp; &nbsp; &nbsp;'
+<         a(href='/find') Find
+< 
+<     hr
+< 
+---
+>     h1(style='color:green')  Jack Hammer
+diff /home/seaman/Projects/4-thot/app/views/list.jade /home/seaman/Projects/jack-hammer/app/views/list.jade
+6a7,10
+>     p 
+>       a(href='/new') Add
+>     hr  
+>     h1  List
+11,12c15
+<             p 
+<               a(href='/#{f}') #{f}
+---
+>             a(href='/#{f}') #{f}
+Only in /home/seaman/Projects/jack-hammer/app/views: show.jade

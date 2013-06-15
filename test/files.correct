@@ -42,6 +42,7 @@ thot-exe
 thot-find
 thot-project
 thot-read
+thot-show
 thot-slides
 tlike
 tlist
@@ -126,6 +127,10 @@ hammer-write.correct
 hammer-write.diff
 hammer-write.out
 hammer-write.tst
+show.correct
+show.diff
+show.out
+show.tst
 update.correct
 update.diff
 update.out
